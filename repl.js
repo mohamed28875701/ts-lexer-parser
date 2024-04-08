@@ -5,18 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const lexer_1 = require("./lex/lexer");
+const token_1 = require("./lexer/token");
 function readFile(file) {
     const data = fs_1.default.readFileSync(file, "utf8");
     return data;
 }
-console.log(readFile("file.txt"));
-let l = new lexer_1.lexer(readFile("file.txt"));
-const token = l.nextToken();
-while (true) {
-    if (token.type !== "EOF") {
-        const token = l.nextToken();
-        console.log(token);
-        //fs.appendFile("out.txt",`${token.type} ${token.literal}\n`,'utf8',(e)=>console.log("deez nuts"));
-    }
-    break;
+const data = readFile("file.txt").toString();
+let l = new lexer_1.lexer(data);
+fs_1.default.writeFile("out.txt", '', () => console.log("done"));
+console.log(data);
+for (let i = 0; i != l.input.length; i++) {
+    const token = l.nextToken();
+    fs_1.default.appendFileSync("out.txt", `${token.type} ${token.literal}\n`, "utf8");
+    if (token.type === token_1.TokenType.Eof)
+        break;
 }

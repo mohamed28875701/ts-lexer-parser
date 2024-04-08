@@ -101,7 +101,7 @@ class lexer {
     }
     readIdentifier() {
         let position = this.position;
-        while (this.isLetter(l.ch)) {
+        while (this.isLetter(this.ch)) {
             this.readChar();
         }
         return this.input.substring(position, this.position);
@@ -131,7 +131,7 @@ class lexer {
             return '\0';
         }
         else {
-            return this.input[l.readPosition];
+            return this.input[this.readPosition];
         }
     }
 }
@@ -152,12 +152,3 @@ return false;
 10 == 10;
 10 != 9;
 `;
-let l = new lexer(test);
-const token = l.nextToken();
-while (true) {
-    const token = l.nextToken();
-    console.log(token);
-    if (token.type === "EOF") {
-        break;
-    }
-}
