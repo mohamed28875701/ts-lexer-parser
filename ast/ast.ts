@@ -1,34 +1,60 @@
-import { Token } from "../lexer/token";
+import { Token, createToken } from "../lexer/token";
 
-interface Node {
-    tokenLiteral : ()=>void;
+export interface Node {
+    tokenLiteral : ()=>string|undefined;
 }
-interface Statement extends Node{
+export interface Statement extends Node{
     StatementNode : ()=>void;
 }
-interface Expression extends Node{
+export interface Expression extends Node{
     expressionNode : ()=>void;
 }
-type Program ={
+export type Program ={
     statements : Statement[];
+    TokenLiteral : ()=>string;
 }
-let program : Program={statements : []};
-program.statements.forEach(e => e.tokenLiteral = () => {
-    if(program.statements.length>0){
-        return program.statements[0].tokenLiteral();
-    }
-    else {
-        return "";
-    }
-})
-interface LetStatement extends Statement{
-    token: Token;
-    name : Identifier;
-    value : Expression;
+export interface LetStatement extends Statement{
+    token?: Token;
+    name? : Identifier;
+    value? : Expression;
 }
-interface Identifier extends Expression{
-    token : Token;
-    value:string;
-    tokenLiteral : ()=>{return this.token.literal}
+export interface Identifier extends Expression{
+    token? : Token;
+    value?:string;
+}
+export function createProgram() : Program{
+    let program : Program ={
+        statements : [],
+        TokenLiteral() :string {
+            if(this.statements.length>0)
+                return this.statements[0].tokenLiteral();
+            else 
+                return "";
+        },
+    }
+    return program;
+}
+export function createIdentifier() : Identifier{
+    let id : Identifier={
+        token : undefined,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token?.literal;
+        },
+    }
+    return id;
+}
+export function createLetStatement() : LetStatement{
+    let ls : LetStatement={
+        StatementNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token?.literal;
+        },
+    }
+    return ls;
 }
 
