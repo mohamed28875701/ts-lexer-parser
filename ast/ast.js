@@ -33,8 +33,7 @@ function createIdentifier(token, value) {
             return undefined;
         },
         tokenLiteral() {
-            var _a;
-            return (_a = this.token) === null || _a === void 0 ? void 0 : _a.literal;
+            return this.token.literal;
         },
         to_string() {
             return this.value;
@@ -75,7 +74,7 @@ function createReturnStatement(token) {
         },
         to_string() {
             let s = "";
-            s = s + this.tokenLiteral();
+            s = s + this.tokenLiteral() + " ";
             if (this.returnValue !== undefined)
                 s += this.returnValue.to_string();
             s += ";";
@@ -96,7 +95,7 @@ function createExpressionStatement(token) {
         },
         to_string() {
             let s = "";
-            s = s + this.tokenLiteral();
+            s = s + this.tokenLiteral() + " ";
             if (this.expression !== undefined)
                 s += this.expression.to_string();
             s += ";";

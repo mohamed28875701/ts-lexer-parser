@@ -28,9 +28,10 @@ export interface expressionStatement extends Statement{
     expression : Expression;
 }
 export interface Identifier extends Expression{
-    token : Token;
     value:string;
 }
+export type prefixParseFn=()=>Expression;
+export type infixParseFn=(exp:Expression)=>Expression;
 export function createProgram() : Program{
     let program : Program ={
         statements : [],
@@ -58,7 +59,7 @@ export function createIdentifier(token : Token,value:string) : Identifier{
             return undefined;
         },
         tokenLiteral() {
-            return this.token?.literal;
+            return this.token.literal;
         },
         to_string() {
             return this.value;
@@ -97,7 +98,7 @@ export function createReturnStatement(token:Token){
         },
         to_string() {
             let s:string="";
-            s=s+this.tokenLiteral();
+            s=s+this.tokenLiteral()+" ";
             if(this.returnValue!==undefined)
                 s+=this.returnValue.to_string();
             s+=";";
@@ -118,7 +119,7 @@ export function createExpressionStatement(token:Token){
         },
         to_string() {
             let s:string="";
-            s=s+this.tokenLiteral();
+            s=s+this.tokenLiteral()+" ";
             if(this.expression!==undefined)
                 s+=this.expression.to_string();
             s+=";";
