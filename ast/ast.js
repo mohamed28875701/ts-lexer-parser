@@ -3,8 +3,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIntegralLiteral = exports.createIdentifier = exports.createProgram = exports.createPrefixExpression = void 0;
+exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIntegralLiteral = exports.createIdentifier = exports.createProgram = exports.createPrefixExpression = exports.createInfixExpression = exports.precedences = exports.ex = void 0;
 const fs_1 = __importDefault(require("fs"));
+const token_1 = require("../lexer/token");
+exports.ex = {
+    LOWEST: 0,
+    EQUALS: 1,
+    LESSGREATER: 2,
+    SUM: 3,
+    PRODCUT: 4,
+    PREFIX: 5,
+    CALL: 6
+};
+token_1.TokenType.Lt;
+exports.precedences = {
+    "==": 1,
+    "!=": 1,
+    "<": 2,
+    ">": 2,
+    "+": 3,
+    "-": 3,
+    "/": 4,
+    "*": 4,
+};
+function createInfixExpression(token, operator, left) {
+    let ie = {
+        token: token,
+        operator: operator,
+        left: left,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s = "{" + this.left.to_string() + " " + this.operator + " " + this.right.to_string() + "}";
+            return s;
+        },
+    };
+    return ie;
+}
+exports.createInfixExpression = createInfixExpression;
+;
 function createPrefixExpression(token, operator) {
     let pe = {
         token: token,

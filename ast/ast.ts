@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Token, createToken } from "../lexer/token";
+import { Token, TokenType, createToken } from "../lexer/token";
 
 export interface Node {
     tokenLiteral : ()=>string|undefined;
@@ -8,7 +8,7 @@ export interface Node {
 export interface Statement extends Node{
     StatementNode : ()=>void|undefined;
 }
-export interface Expression extends Node{
+export interface Expression extends Statement{
     expressionNode : ()=>void;
 }
 export interface Program extends Node {
@@ -41,6 +41,50 @@ export interface prefixExpression extends Expression{
     operator:string;
     right:Expression;
 }
+export interface infixExpression extends Expression{
+    token:Token;
+    left:Expression;
+    operator:string;
+    right:Expression;
+}
+export const ex={
+    LOWEST:0,
+    EQUALS:1,
+    LESSGREATER:2,
+    SUM:3,
+    PRODCUT:4,
+    PREFIX:5,
+    CALL:6
+}as const;
+TokenType.Lt
+export const precedences : { [key :string ] :number}={
+    "==":1,
+    "!=" :1,
+    "<":2,
+    ">":2,
+    "+":3,
+    "-":3,
+    "/":4,
+    "*":4,
+};
+export function createInfixExpression(token : Token , operator:string,left:Expression){
+    let ie:infixExpression={
+        token: token,
+        operator: operator,
+        left:left,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s: string ="{" +this.left.to_string() + " " + this.operator + " " + this.right.to_string()+"}";
+            return s;
+        },
+    };
+    return ie;
+};
 export function createPrefixExpression(token : Token,operator:string) : prefixExpression{
     let pe : prefixExpression={
         token : token,

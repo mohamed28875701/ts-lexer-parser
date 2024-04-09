@@ -5,20 +5,12 @@ const ast_1 = require("../ast/ast");
 const lexer_1 = require("../lex/lexer");
 const token_1 = require("../lexer/token");
 const helper_functions_1 = require("./helper_functions");
-const ex = {
-    LOWEST: 0,
-    EQUALS: 1,
-    LESSGREATER: 2,
-    SUM: 3,
-    PRODCUT: 4,
-    PREFIX: 5,
-    CALL: 6
-};
 function createParser(lexer) {
     let p = {
         lex: lexer,
         errors: [],
         prefixParseFns: new Map(),
+        infixParseFns: new Map(),
         nextToken() {
             this.curToken = this.peekToken;
             this.peekToken = this.lex.nextToken();
@@ -95,17 +87,28 @@ function createParser(lexer) {
             this.infixParseFns.set(type, infixFn);
         },
         parseExpressionStatement() {
+            if (this.curToken.type === token_1.TokenType.Semicolon)
+                return undefined;
             let stmt = (0, ast_1.createExpressionStatement)(this.curToken);
-            stmt.expression = this.parseExpression(ex.LOWEST);
+            stmt.expression = this.parseExpression(ast_1.ex.LOWEST);
             return stmt;
         },
         parseExpression(precedence) {
+            console.log(this.curToken);
             let prefix = this.prefixParseFns.get(this.curToken.type);
+            console.log(this.curToken);
             if (prefix === undefined) {
                 this.noPrefixParseError(this.curToken.type);
                 return undefined;
             }
             let leftExp = prefix();
+            while (!(0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Semicolon) && precedence < this.peekPrecendence()) {
+                let infix = this.infixParseFns.get(this.peekToken.type);
+                if (infix == undefined)
+                    return leftExp;
+                this.nextToken();
+                leftExp = infix(leftExp);
+            }
             return leftExp;
         },
         parseIdent() {
@@ -118,8 +121,27 @@ function createParser(lexer) {
         parsePrefixExpression() {
             let expression = (0, ast_1.createPrefixExpression)(this.curToken, this.curToken.literal);
             this.nextToken();
-            expression.right = this.parseExpression(ex.PREFIX);
+            expression.right = this.parseExpression(ast_1.ex.PREFIX);
             return expression;
+        },
+        peekPrecendence() {
+            let p = ast_1.precedences[this.peekToken.type];
+            if (p > 0)
+                return p;
+            return ast_1.ex.LOWEST;
+        },
+        curPrecendence() {
+            let p = ast_1.precedences[this.curToken.type];
+            if (p > 0)
+                return p;
+            return ast_1.ex.LOWEST;
+        },
+        parseInfixExpression(expr) {
+            let exp = (0, ast_1.createInfixExpression)(this.curToken, this.curToken.literal, expr);
+            let prec = this.curPrecendence();
+            this.nextToken();
+            exp.right = this.parseExpression(prec);
+            return exp;
         },
     };
     p.nextToken();
@@ -129,10 +151,18 @@ function createParser(lexer) {
     p.registerPrefix(token_1.TokenType.Int, p.parseInteger.bind(p));
     p.registerPrefix(token_1.TokenType.Bang, p.parsePrefixExpression.bind(p));
     p.registerPrefix(token_1.TokenType.Minus, p.parsePrefixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Eq, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Not_eq, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Plus, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Minus, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Asterisk, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Slash, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Gt, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Lt, p.parseInfixExpression.bind(p));
     return p;
 }
 exports.createParser = createParser;
-let lex = new lexer_1.lexer(`x= -123;`);
+let lex = new lexer_1.lexer(`a + b * c + d / e - f`);
 let par = createParser(lex);
 let pr = par.parseProgram();
 pr.statements.forEach(e => console.log(e));
