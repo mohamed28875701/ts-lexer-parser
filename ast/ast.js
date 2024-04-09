@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createLetStatement = exports.createIdentifier = exports.createProgram = void 0;
+exports.createReturnStatement = exports.createLetStatement = exports.createIdentifier = exports.createProgram = void 0;
 function createProgram() {
     let program = {
         statements: [],
@@ -42,3 +42,16 @@ function createLetStatement(token) {
     return ls;
 }
 exports.createLetStatement = createLetStatement;
+function createReturnStatement(token) {
+    let rs = {
+        token: token,
+        StatementNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+    };
+    return rs;
+}
+exports.createReturnStatement = createReturnStatement;

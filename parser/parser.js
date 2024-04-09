@@ -26,9 +26,13 @@ function createParser(lexer) {
             return pr;
         },
         parseStatement() {
-            var _a;
+            var _a, _b;
             if (((_a = this.curToken) === null || _a === void 0 ? void 0 : _a.type) === token_1.TokenType.Let) {
                 let stmt = this.parseLetStatement();
+                return stmt;
+            }
+            else if (((_b = this.curToken) === null || _b === void 0 ? void 0 : _b.type) === token_1.TokenType.Return) {
+                let stmt = this.parseReturnStatement();
                 return stmt;
             }
             else
@@ -43,6 +47,14 @@ function createParser(lexer) {
             if (!this.expectPeek(token_1.TokenType.Assign)) {
                 return undefined;
             }
+            while (!(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Semicolon)) {
+                this.nextToken();
+            }
+            return stmt;
+        },
+        parseReturnStatement() {
+            let stmt = (0, ast_1.createReturnStatement)(this.curToken);
+            this.nextToken();
             while (!(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Semicolon)) {
                 this.nextToken();
             }
@@ -70,9 +82,9 @@ function createParser(lexer) {
 }
 exports.createParser = createParser;
 let lex = new lexer_1.lexer(`
-let x = 5;
-let y = 10;
-let z = 838383;
+return 5;
+return 10;
+return 993322;
 `);
 let par = createParser(lex);
 let pr = par.parseProgram();

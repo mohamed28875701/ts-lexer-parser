@@ -18,6 +18,10 @@ export interface LetStatement extends Statement{
     name : Identifier;
     value : Expression;
 }
+export interface returnStatement extends Statement{
+    token:Token;
+    returnValue :Expression;
+}
 export interface Identifier extends Expression{
     token : Token;
     value:string;
@@ -59,4 +63,21 @@ export function createLetStatement(token:Token) : LetStatement{
     }
     return ls;
 }
+export function createReturnStatement(token:Token){
+    let rs :returnStatement ={
+        token:token,
+        StatementNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+    }
+    return rs;
+}
+
+
+
+
+
 

@@ -1,4 +1,4 @@
-import { LetStatement, Program, Statement, createIdentifier, createLetStatement, createProgram } from "../ast/ast";
+import { LetStatement, Program, Statement, createIdentifier, createLetStatement, createProgram, createReturnStatement, returnStatement } from "../ast/ast";
 import { lexer } from "../lex/lexer";
 import { Token, TokenType } from "../lexer/token";
 import { curTokenIs, peekTokenIs } from "./helper_functions";
@@ -10,10 +10,11 @@ export interface Parser{
     errors:string[],
     nextToken : ()=> void;
     parseProgram:()=>Program;
-    parseStatement:()=>LetStatement|undefined;
+    parseStatement:()=>LetStatement|returnStatement|undefined;
     parseLetStatement:()=>LetStatement|undefined;
     expectPeek:(token:string)=>boolean;
     peekError:(token:string)=>void;
+    parseReturnStatement : ()=>returnStatement|undefined;
 }
 export function createParser(lexer : lexer):Parser{
     let p : Parser ={
@@ -35,9 +36,13 @@ export function createParser(lexer : lexer):Parser{
             }
             return pr;   
         },
-        parseStatement() {
+        parseStatement(): LetStatement | returnStatement | undefined {
             if(this.curToken?.type===TokenType.Let){
                 let stmt=this.parseLetStatement();
+                return stmt;
+            }
+            else if(this.curToken?.type===TokenType.Return){
+                let stmt=this.parseReturnStatement();
                 return stmt;
             }
             else 
@@ -52,6 +57,14 @@ export function createParser(lexer : lexer):Parser{
             if(!this.expectPeek(TokenType.Assign)){
                 return undefined;
             }
+            while(!curTokenIs(this,TokenType.Semicolon)){
+                this.nextToken();
+            }
+            return stmt;
+        },
+        parseReturnStatement(){
+            let stmt = createReturnStatement(this.curToken);
+            this.nextToken();
             while(!curTokenIs(this,TokenType.Semicolon)){
                 this.nextToken();
             }
@@ -78,9 +91,9 @@ export function createParser(lexer : lexer):Parser{
     return p;
 }
 let lex:lexer =new lexer(`
-let x = 5;
-let y = 10;
-let z = 838383;
+return 5;
+return 10;
+return 993322;
 `
 );
 let par=createParser(lex);
