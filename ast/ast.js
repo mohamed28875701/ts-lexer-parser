@@ -14,9 +14,10 @@ function createProgram() {
     return program;
 }
 exports.createProgram = createProgram;
-function createIdentifier() {
+function createIdentifier(token, value) {
     let id = {
-        token: undefined,
+        token: token,
+        value: value,
         expressionNode() {
             return undefined;
         },
@@ -28,14 +29,14 @@ function createIdentifier() {
     return id;
 }
 exports.createIdentifier = createIdentifier;
-function createLetStatement() {
+function createLetStatement(token) {
     let ls = {
+        token: token,
         StatementNode() {
             return undefined;
         },
         tokenLiteral() {
-            var _a;
-            return (_a = this.token) === null || _a === void 0 ? void 0 : _a.literal;
+            return this.token.literal;
         },
     };
     return ls;

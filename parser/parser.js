@@ -1,7 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createParser = void 0;
+const ast_1 = require("../ast/ast");
 const lexer_1 = require("../lex/lexer");
+const token_1 = require("../lexer/token");
+const helper_functions_1 = require("./helper_functions");
 function createParser(lexer) {
     let p = {
         lex: lexer,
@@ -9,13 +12,53 @@ function createParser(lexer) {
             this.curToken = this.peekToken;
             this.peekToken = this.lex.nextToken();
         },
+        parseProgram() {
+            let pr = (0, ast_1.createProgram)();
+            let i = 0;
+            while (this.curToken.type !== token_1.TokenType.Eof) {
+                let stmt = this.parseStatement();
+                if (stmt !== undefined) {
+                    pr.statements.push(stmt);
+                }
+                this.nextToken();
+            }
+            return pr;
+        },
+        parseStatement() {
+            var _a;
+            if (((_a = this.curToken) === null || _a === void 0 ? void 0 : _a.type) === token_1.TokenType.Let) {
+                let stmt = this.parseLetStatement();
+                return stmt;
+            }
+            else
+                return undefined;
+        },
+        parseLetStatement() {
+            let stmt = (0, ast_1.createLetStatement)(this.curToken);
+            if (!this.expectPeek(token_1.TokenType.Ident)) {
+                return undefined;
+            }
+            stmt.name = (0, ast_1.createIdentifier)(this.curToken, this.curToken.literal);
+            while (!(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Semicolon)) {
+                this.nextToken();
+            }
+            return stmt;
+        },
+        expectPeek(token) {
+            if ((0, helper_functions_1.peekTokenIs)(this, token)) {
+                this.nextToken();
+                return true;
+            }
+            return false;
+        },
     };
     p.nextToken();
     p.nextToken();
     return p;
 }
 exports.createParser = createParser;
-let l = new lexer_1.lexer("let x = 3;");
-let p = createParser(l);
-console.log(p.peekToken);
-console.log(p.curToken);
+let lex = new lexer_1.lexer("let x= 0 ;let y=12 ;");
+let par = createParser(lex);
+let pr = par.parseProgram();
+pr.statements.forEach(e => e);
+pr.statements.forEach(e => console.log(e));
