@@ -8,6 +8,7 @@ const helper_functions_1 = require("./helper_functions");
 function createParser(lexer) {
     let p = {
         lex: lexer,
+        errors: [],
         nextToken() {
             this.curToken = this.peekToken;
             this.peekToken = this.lex.nextToken();
@@ -39,6 +40,9 @@ function createParser(lexer) {
                 return undefined;
             }
             stmt.name = (0, ast_1.createIdentifier)(this.curToken, this.curToken.literal);
+            if (!this.expectPeek(token_1.TokenType.Assign)) {
+                return undefined;
+            }
             while (!(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Semicolon)) {
                 this.nextToken();
             }
@@ -49,7 +53,15 @@ function createParser(lexer) {
                 this.nextToken();
                 return true;
             }
-            return false;
+            else {
+                this.peekError(token);
+                return false;
+            }
+        },
+        peekError(token) {
+            let err = `expected next token to be ${token} got ${this.peekToken.type} instead`;
+            console.log(err);
+            this.errors.push(err);
         },
     };
     p.nextToken();
@@ -57,8 +69,11 @@ function createParser(lexer) {
     return p;
 }
 exports.createParser = createParser;
-let lex = new lexer_1.lexer("let x= 0 ;let y=12 ;");
+let lex = new lexer_1.lexer(`
+let x = 5;
+let y = 10;
+let z = 838383;
+`);
 let par = createParser(lex);
 let pr = par.parseProgram();
-pr.statements.forEach(e => e);
 pr.statements.forEach(e => console.log(e));

@@ -21,16 +21,11 @@ class lexer {
         let token;
         this.skipWhiteSpace();
         switch (this.ch) {
-            case "=":
-                if (this.peek() === "=") {
-                    token = (0, token_1.createToken)(token_1.TokenType.Eq, this.ch + "=");
-                    this.readChar();
-                }
-                else
-                    token = (0, token_1.createToken)(token_1.TokenType.Assign, this.ch);
+            case "{":
+                token = (0, token_1.createToken)(token_1.TokenType.Lbrace, this.ch);
                 break;
-            case ";":
-                token = (0, token_1.createToken)(token_1.TokenType.Semicolon, this.ch);
+            case "}":
+                token = (0, token_1.createToken)(token_1.TokenType.Rbrace, this.ch);
                 break;
             case "(":
                 token = (0, token_1.createToken)(token_1.TokenType.Lparen, this.ch);
@@ -38,25 +33,23 @@ class lexer {
             case ")":
                 token = (0, token_1.createToken)(token_1.TokenType.Rparen, this.ch);
                 break;
-            case "+":
-                token = (0, token_1.createToken)(token_1.TokenType.Plus, this.ch);
-                break;
-            case "{":
-                token = (0, token_1.createToken)(token_1.TokenType.Lbrace, this.ch);
-                break;
-            case "}":
-                token = (0, token_1.createToken)(token_1.TokenType.Rbrace, this.ch);
-                break;
-            case "-":
-                token = (0, token_1.createToken)(token_1.TokenType.Minus, this.ch);
+            case ",":
+                token = (0, token_1.createToken)(token_1.TokenType.Comma, this.ch);
                 break;
             case "!":
                 if (this.peek() === "=") {
-                    token = (0, token_1.createToken)(token_1.TokenType.Not_eq, this.ch + "=");
                     this.readChar();
+                    token = (0, token_1.createToken)(token_1.TokenType.Not_eq, "!=");
                 }
-                else
+                else {
                     token = (0, token_1.createToken)(token_1.TokenType.Bang, this.ch);
+                }
+                break;
+            case ">":
+                token = (0, token_1.createToken)(token_1.TokenType.Gt, this.ch);
+                break;
+            case "<":
+                token = (0, token_1.createToken)(token_1.TokenType.Lt, this.ch);
                 break;
             case "*":
                 token = (0, token_1.createToken)(token_1.TokenType.Asterisk, this.ch);
@@ -64,37 +57,45 @@ class lexer {
             case "/":
                 token = (0, token_1.createToken)(token_1.TokenType.Slash, this.ch);
                 break;
-            case ",":
-                token = (0, token_1.createToken)(token_1.TokenType.Comma, this.ch);
+            case "-":
+                token = (0, token_1.createToken)(token_1.TokenType.Minus, this.ch);
                 break;
-            case "<":
-                token = (0, token_1.createToken)(token_1.TokenType.Lt, this.ch);
+            case ";":
+                token = (0, token_1.createToken)(token_1.TokenType.Semicolon, this.ch);
                 break;
-            case ">":
-                token = (0, token_1.createToken)(token_1.TokenType.Gt, this.ch);
+            case "+":
+                token = (0, token_1.createToken)(token_1.TokenType.Plus, this.ch);
                 break;
-            case '\0':
-                token = (0, token_1.createToken)(token_1.TokenType.Eof, "");
-                break;
-            default:
-                if (this.isLetter(this.ch)) {
-                    let key = this.readIdentifier();
-                    if (this.checkInKey(key)) {
-                        let f = token_1.keywords[key];
-                        token = (0, token_1.createToken)(f.type, key);
-                        return token;
-                    }
-                    else {
-                        token = (0, token_1.createToken)(token_1.TokenType.Ident, key);
-                        return token;
-                    }
-                }
-                else if (this.isNumber()) {
-                    token = (0, token_1.createToken)(token_1.TokenType.Int, this.readInt());
+            case "=":
+                if (this.peek() === "=") {
+                    this.readChar();
+                    token = (0, token_1.createToken)(token_1.TokenType.Eq, "==");
                 }
                 else {
-                    token = (0, token_1.createToken)(token_1.TokenType.Illegal, this.ch);
+                    token = (0, token_1.createToken)(token_1.TokenType.Assign, this.ch);
                 }
+                break;
+            case "\0":
+                token = (0, token_1.createToken)(token_1.TokenType.Eof, "eof");
+                break;
+        }
+        if (this.isLetter(this.ch)) {
+            let key = this.readIdentifier();
+            if (this.checkInKey(key)) {
+                let f = token_1.keywords[key];
+                token = (0, token_1.createToken)(f.type, key);
+                return token;
+            }
+            else {
+                token = (0, token_1.createToken)(token_1.TokenType.Ident, key);
+                return token;
+            }
+        }
+        else if (this.isNumber()) {
+            return (0, token_1.createToken)(token_1.TokenType.Int, this.readInt());
+        }
+        else if (!token) {
+            return (0, token_1.createToken)(token_1.TokenType.Illegal, this.ch);
         }
         this.readChar();
         return token;

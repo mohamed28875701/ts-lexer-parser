@@ -6,6 +6,6 @@ int 0
 LET let
 ident y
 = =
-int 12
+int 121
 ; ;
-EOF 
+EOF eof

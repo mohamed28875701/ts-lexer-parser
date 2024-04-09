@@ -19,85 +19,83 @@ export class lexer{
     public nextToken() :Token{
         let token: Token | undefined;
         this.skipWhiteSpace();
-        switch(this.ch){
-            case "=":
-                if(this.peek()==="="){
-                    token=createToken(TokenType.Eq,this.ch+"=")
-                    this.readChar();
-                }
-                else
-                    token=createToken(TokenType.Assign,this.ch)
-                break;
-            case ";":
-                token=createToken(TokenType.Semicolon,this.ch)
-                break;
-            case "(":
-                token=createToken(TokenType.Lparen,this.ch)
-                break;
-            case ")":
-                token=createToken(TokenType.Rparen,this.ch)
-                break;
-            case "+":
-                token=createToken(TokenType.Plus,this.ch)
-                break;
+                switch (this.ch) {
             case "{":
-                token=createToken(TokenType.Lbrace,this.ch)
+                token = createToken(TokenType.Lbrace, this.ch);
                 break;
             case "}":
-                token=createToken(TokenType.Rbrace,this.ch)
+                token = createToken(TokenType.Rbrace, this.ch);
                 break;
-            case "-":
-                token=createToken(TokenType.Minus,this.ch)
+            case "(":
+                token = createToken(TokenType.Lparen, this.ch);
                 break;
-            case "!":
-                if(this.peek()==="="){
-                    token=createToken(TokenType.Not_eq,this.ch+"=")
-                    this.readChar();
-                }
-                else
-                token=createToken(TokenType.Bang,this.ch)
-                break;
-            case "*":
-                token=createToken(TokenType.Asterisk,this.ch)
-                break;
-            case "/":
-                token=createToken(TokenType.Slash,this.ch)
+            case ")":
+                token = createToken(TokenType.Rparen, this.ch);
                 break;
             case ",":
-                token=createToken(TokenType.Comma,this.ch)
+                token = createToken(TokenType.Comma, this.ch);
                 break;
-            case "<":
-                token=createToken(TokenType.Lt,this.ch)
+            case "!":
+                if (this.peek() === "=") {
+                    this.readChar();
+                    token = createToken(TokenType.Not_eq, "!=");
+                } else {
+                    token = createToken(TokenType.Bang, this.ch);
+                }
                 break;
             case ">":
-                token=createToken(TokenType.Gt,this.ch)
+                token = createToken(TokenType.Gt, this.ch);
                 break;
-            case '\0':
-                token = createToken(TokenType.Eof,"");
+            case "<":
+                token = createToken(TokenType.Lt, this.ch);
                 break;
-            default:
-                if(this.isLetter(this.ch)){
-                    let key=this.readIdentifier();
-                    if(this.checkInKey(key)){
-                        let f:Token=(keywords as any)[key];
-                        token = createToken(f.type,key);
-                        return token;
-                    }
-                    else {
-                        token = createToken(TokenType.Ident,key);
-                        return token;
-                    }
+            case "*":
+                token = createToken(TokenType.Asterisk, this.ch);
+                break;
+            case "/":
+                token = createToken(TokenType.Slash, this.ch);
+                break;
+            case "-":
+                token = createToken(TokenType.Minus, this.ch);
+                break;
+            case ";":
+                token = createToken(TokenType.Semicolon, this.ch);
+                break;
+            case "+":
+                token = createToken(TokenType.Plus, this.ch);
+                break;
+            case "=":
+                if (this.peek() === "=") {
+                    this.readChar();
+                    token = createToken(TokenType.Eq, "==");
+                } else {
+                    token = createToken(TokenType.Assign, this.ch);
                 }
-                else if(this.isNumber()){
-                    token=createToken(TokenType.Int,this.readInt())
-                }
+                break;
+            case "\0":
+                token = createToken(TokenType.Eof, "eof");
+                break;
+        }
 
-                else{
-                    token = createToken(TokenType.Illegal,this.ch);
-                }
-        }       
+        if (this.isLetter(this.ch)) {
+            let key=this.readIdentifier();
+            if(this.checkInKey(key)){
+                let f:Token=(keywords as any)[key];
+                token = createToken(f.type,key);
+                return token;
+            }
+            else {
+                token = createToken(TokenType.Ident,key);
+                return token;
+            }
+        } else if (this.isNumber()) {
+            return createToken(TokenType.Int, this.readInt());
+        } else if (!token) {
+            return createToken(TokenType.Illegal, this.ch);
+        }
+
         this.readChar();
-        return token;
+        return token as Token;
     }
 
     public readIdentifier(): string{
