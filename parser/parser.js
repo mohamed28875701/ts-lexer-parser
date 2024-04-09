@@ -89,3 +89,4 @@ return 993322;
 let par = createParser(lex);
 let pr = par.parseProgram();
 pr.statements.forEach(e => console.log(e));
+pr.to_string();
