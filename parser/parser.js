@@ -83,6 +83,11 @@ function createParser(lexer) {
             console.log(err);
             this.errors.push(err);
         },
+        noPrefixParseError(type) {
+            let msg = `no perfix parser function for ${type} found`;
+            console.log(msg);
+            this.errors.push(msg);
+        },
         registerPrefix(type, prefixparseFn) {
             this.prefixParseFns.set(type, prefixparseFn);
         },
@@ -96,25 +101,38 @@ function createParser(lexer) {
         },
         parseExpression(precedence) {
             let prefix = this.prefixParseFns.get(this.curToken.type);
-            console.log(prefix);
-            console.log(this.curToken);
-            if (prefix === undefined)
+            if (prefix === undefined) {
+                this.noPrefixParseError(this.curToken.type);
                 return undefined;
+            }
             let leftExp = prefix();
             return leftExp;
         },
         parseIdent() {
             return (0, ast_1.createIdentifier)(this.curToken, this.curToken.literal);
-        }
+        },
+        parseInteger() {
+            let int = (0, ast_1.createIntegralLiteral)(this.curToken, parseInt(this.curToken.literal));
+            return int;
+        },
+        parsePrefixExpression() {
+            let expression = (0, ast_1.createPrefixExpression)(this.curToken, this.curToken.literal);
+            this.nextToken();
+            expression.right = this.parseExpression(ex.PREFIX);
+            return expression;
+        },
     };
     p.nextToken();
     p.nextToken();
     let parseI = p.parseIdent.bind(p);
     p.registerPrefix(token_1.TokenType.Ident, parseI);
+    p.registerPrefix(token_1.TokenType.Int, p.parseInteger.bind(p));
+    p.registerPrefix(token_1.TokenType.Bang, p.parsePrefixExpression.bind(p));
+    p.registerPrefix(token_1.TokenType.Minus, p.parsePrefixExpression.bind(p));
     return p;
 }
 exports.createParser = createParser;
-let lex = new lexer_1.lexer(`foobar;`);
+let lex = new lexer_1.lexer(`x= -123;`);
 let par = createParser(lex);
 let pr = par.parseProgram();
 pr.statements.forEach(e => console.log(e));

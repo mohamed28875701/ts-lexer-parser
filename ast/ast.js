@@ -3,8 +3,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIdentifier = exports.createProgram = void 0;
+exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIntegralLiteral = exports.createIdentifier = exports.createProgram = exports.createPrefixExpression = void 0;
 const fs_1 = __importDefault(require("fs"));
+function createPrefixExpression(token, operator) {
+    let pe = {
+        token: token,
+        operator: operator,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s = "";
+            s += "(" + this.operator + " " + this.right.to_string() + ")";
+            ;
+            return s;
+        },
+    };
+    return pe;
+}
+exports.createPrefixExpression = createPrefixExpression;
 function createProgram() {
     let program = {
         statements: [],
@@ -42,6 +62,23 @@ function createIdentifier(token, value) {
     return id;
 }
 exports.createIdentifier = createIdentifier;
+function createIntegralLiteral(token, value) {
+    let id = {
+        token: token,
+        value: value,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            return this.value;
+        },
+    };
+    return id;
+}
+exports.createIntegralLiteral = createIntegralLiteral;
 function createLetStatement(token) {
     let ls = {
         token: token,

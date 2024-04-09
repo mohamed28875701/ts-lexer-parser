@@ -32,6 +32,33 @@ export interface Identifier extends Expression{
 }
 export type prefixParseFn=()=>Expression;
 export type infixParseFn=(exp:Expression)=>Expression;
+export interface IntegralLiteral extends Expression{
+    token : Token;
+    value:number;
+}
+export interface prefixExpression extends Expression{
+    token:Token;
+    operator:string;
+    right:Expression;
+}
+export function createPrefixExpression(token : Token,operator:string) : prefixExpression{
+    let pe : prefixExpression={
+        token : token,
+        operator:operator,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s="";
+            s+="(" + this.operator+" "+ this.right.to_string()+")";;
+            return s;
+        },
+    }
+    return pe;
+}
 export function createProgram() : Program{
     let program : Program ={
         statements : [],
@@ -51,7 +78,23 @@ export function createProgram() : Program{
     }
     return program;
 }
-export function createIdentifier(token : Token,value:string) : Identifier{
+export function createIdentifier(token : Token,value:string) : IntegralLiteral{
+    let id : Identifier={
+        token : token,
+        value:value,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            return this.value;
+        },
+    }
+    return id;
+}
+export function createIntegralLiteral(token : Token,value:number) : Identifier{
     let id : Identifier={
         token : token,
         value:value,

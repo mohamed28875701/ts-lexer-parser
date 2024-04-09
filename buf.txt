@@ -1,2 +1,4 @@
-foobar foobar;
+x x;
+= ;
+- (- 123);
 ; ;
