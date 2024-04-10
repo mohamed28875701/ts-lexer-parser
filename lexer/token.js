@@ -14,7 +14,7 @@ exports.TokenType = {
     Lbrace: "{",
     Rbrace: "}",
     // Keywords,
-    Function: "FUNCTION",
+    Function: "fn",
     Let: "LET",
     Plus: "+",
     Minus: "-",

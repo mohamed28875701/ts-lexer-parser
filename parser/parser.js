@@ -145,7 +145,101 @@ function createParser(lexer) {
         },
         parseBoolean() {
             return (0, ast_1.createBooleanLiteral)(this.curToken, this.curToken.literal == "true");
-        }
+        },
+        parseGroupedExpressions() {
+            this.nextToken();
+            let exp = this.parseExpression(ast_1.ex.LOWEST);
+            if (!this.expectPeek(token_1.TokenType.Rparen))
+                return undefined;
+            return exp;
+        },
+        parseBlockStatement() {
+            let block = (0, ast_1.createBlockStatement)(this.curToken);
+            this.nextToken();
+            while (!(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Rbrace) && !(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Rbrace)) {
+                let stmt = this.parseStatement();
+                if (stmt !== undefined)
+                    block.statements.push(stmt);
+                this.nextToken();
+            }
+            ;
+            return block;
+        },
+        parseIfEpression() {
+            let ie = (0, ast_1.createIfExpression)(this.curToken);
+            if (!this.expectPeek(token_1.TokenType.Lparen)) {
+                return undefined;
+            }
+            this.nextToken();
+            ie.condition = this.parseExpression(ast_1.ex.LOWEST);
+            if (!this.expectPeek(token_1.TokenType.Rparen)) {
+                return undefined;
+            }
+            if (!this.expectPeek(token_1.TokenType.Lbrace)) {
+                console.log("hey");
+                return undefined;
+            }
+            ie.consequence = this.parseBlockStatement();
+            if ((0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Else)) {
+                this.nextToken();
+                if (!this.expectPeek(token_1.TokenType.Lbrace)) {
+                    return undefined;
+                }
+                ie.alternative = this.parseBlockStatement();
+            }
+            return ie;
+        },
+        parseParams() {
+            let params = [];
+            if ((0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Rparen))
+                return params;
+            this.nextToken();
+            let id = (0, ast_1.createIdentifier)(this.curToken, this.curToken.literal);
+            params.push(id);
+            while ((0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Comma)) {
+                this.nextToken();
+                this.nextToken();
+                id = (0, ast_1.createIdentifier)(this.curToken, this.curToken.literal);
+                params.push(id);
+            }
+            ;
+            if (!this.expectPeek(token_1.TokenType.Rparen))
+                return undefined;
+            return params;
+        },
+        parseFunctionExpression() {
+            let fn = (0, ast_1.createFunctionLiteral)(this.curToken);
+            if (!this.expectPeek(token_1.TokenType.Lparen))
+                return undefined;
+            fn.params = this.parseParams();
+            if (!this.expectPeek(token_1.TokenType.Lbrace))
+                return undefined;
+            fn.body = this.parseBlockStatement();
+            return fn;
+        },
+        parseCallArgs() {
+            let args = [];
+            if ((0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Rparen)) {
+                this.nextToken();
+                return args;
+            }
+            this.nextToken();
+            args.push(this.parseExpression(ast_1.ex.LOWEST));
+            while ((0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Comma)) {
+                this.nextToken();
+                this.nextToken();
+                args.push(this.parseExpression(ast_1.ex.LOWEST));
+            }
+            ;
+            if (!this.expectPeek(token_1.TokenType.Rparen))
+                return undefined;
+            return args;
+        },
+        parseCallExpression(fn) {
+            let ce = (0, ast_1.createCallExpression)(this.curToken, fn);
+            ce.arguments = this.parseCallArgs();
+            return ce;
+        },
     };
     p.nextToken();
     p.nextToken();
@@ -157,6 +251,9 @@ function createParser(lexer) {
     p.registerPrefix(token_1.TokenType.True, p.parseBoolean.bind(p));
     p.registerPrefix(token_1.TokenType.Bang, p.parsePrefixExpression.bind(p));
     p.registerPrefix(token_1.TokenType.Minus, p.parsePrefixExpression.bind(p));
+    p.registerPrefix(token_1.TokenType.Lparen, p.parseGroupedExpressions.bind(p));
+    p.registerPrefix(token_1.TokenType.If, p.parseIfEpression.bind(p));
+    p.registerPrefix(token_1.TokenType.Function, p.parseFunctionExpression.bind(p));
     p.registerinfix(token_1.TokenType.Eq, p.parseInfixExpression.bind(p));
     p.registerinfix(token_1.TokenType.Not_eq, p.parseInfixExpression.bind(p));
     p.registerinfix(token_1.TokenType.Plus, p.parseInfixExpression.bind(p));
@@ -165,10 +262,11 @@ function createParser(lexer) {
     p.registerinfix(token_1.TokenType.Slash, p.parseInfixExpression.bind(p));
     p.registerinfix(token_1.TokenType.Gt, p.parseInfixExpression.bind(p));
     p.registerinfix(token_1.TokenType.Lt, p.parseInfixExpression.bind(p));
+    p.registerinfix(token_1.TokenType.Lparen, p.parseCallExpression.bind(p));
     return p;
 }
 exports.createParser = createParser;
-let lex = new lexer_1.lexer(`3 > 5 == false`);
+let lex = new lexer_1.lexer('add(1, 2 * 3, 4 + 5);');
 let par = createParser(lex);
 let pr = par.parseProgram();
 pr.statements.forEach(e => console.log(e));

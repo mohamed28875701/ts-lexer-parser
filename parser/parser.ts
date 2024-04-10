@@ -1,4 +1,4 @@
-import { Expression, Identifier, LetStatement, Program, Statement, createBooleanLiteral, createExpressionStatement, createIdentifier, createInfixExpression, createIntegralLiteral, createLetStatement, createPrefixExpression, createProgram, createReturnStatement, ex, expressionStatement, precedences, prefixExpression, returnStatement } from "../ast/ast";
+import { Expression, Identifier, LetStatement, Program, Statement, blockStatement, callExpression, createBlockStatement, createBooleanLiteral, createCallExpression, createExpressionStatement, createFunctionLiteral, createIdentifier, createIfExpression, createInfixExpression, createIntegralLiteral, createLetStatement, createPrefixExpression, createProgram, createReturnStatement, ex, expressionStatement, functionLiteral, ifExpression, precedences, prefixExpression, returnStatement } from "../ast/ast";
 import { lexer } from "../lex/lexer";
 import { Token, TokenType } from "../lexer/token";
 import { curTokenIs, peekTokenIs } from "./helper_functions";
@@ -29,6 +29,13 @@ export interface Parser{
     peekPrecendence:()=>number;
     curPrecendence:()=>number;
     parseBoolean:()=>Expression;
+    parseGroupedExpressions:()=>Expression|undefined;
+    parseIfEpression:()=>ifExpression|undefined;
+    parseBlockStatement:()=>blockStatement|undefined;
+    parseParams:()=>Identifier[];
+    parseFunctionExpression:()=> functionLiteral|undefined;
+    parseCallArgs:()=>Expression[];
+    parseCallExpression:(fn:Expression)=>callExpression;
 }
 export function createParser(lexer : lexer):Parser{
     let p : Parser ={
@@ -167,8 +174,98 @@ export function createParser(lexer : lexer):Parser{
         },
         parseBoolean(): Expression{
             return createBooleanLiteral(this.curToken,this.curToken.literal=="true");
-        }
-
+        },
+        parseGroupedExpressions(): Expression | undefined {
+            this.nextToken();
+            let exp:Expression=this.parseExpression(ex.LOWEST);
+            if(!this.expectPeek(TokenType.Rparen))
+                return undefined
+            return exp;
+        },
+        parseBlockStatement() {
+            let block = createBlockStatement(this.curToken);
+            this.nextToken();
+            while(!curTokenIs(this,TokenType.Rbrace) && !curTokenIs(this,TokenType.Rbrace)){
+                let stmt=this.parseStatement();
+                if(stmt!==undefined)
+                    block.statements.push(stmt);
+                this.nextToken();
+            };
+            return block;
+        },
+        parseIfEpression() {
+            let ie=createIfExpression(this.curToken);
+            if(!this.expectPeek(TokenType.Lparen)){
+                return undefined;
+            }
+            this.nextToken();
+            ie.condition=this.parseExpression(ex.LOWEST);
+            if(!this.expectPeek(TokenType.Rparen)){
+                return undefined;
+            }
+            if(!this.expectPeek(TokenType.Lbrace)){
+                console.log("hey");
+                return undefined;
+            }
+            ie.consequence=this.parseBlockStatement();
+            if(peekTokenIs(this,TokenType.Else)){
+                this.nextToken();
+                if(!this.expectPeek(TokenType.Lbrace)){
+                    return undefined;
+                }
+                ie.alternative=this.parseBlockStatement();
+            }
+            return ie;
+        },
+        parseParams() {
+            let params:Identifier[]=[];
+            if(peekTokenIs(this,TokenType.Rparen))
+                return params;
+            this.nextToken();
+            let id=createIdentifier(this.curToken,this.curToken.literal);
+            params.push(id);
+            while (peekTokenIs(this,TokenType.Comma)){
+                this.nextToken();
+                this.nextToken();
+                id=createIdentifier(this.curToken,this.curToken.literal);
+                params.push(id);
+            };
+            if(!this.expectPeek(TokenType.Rparen))
+                return undefined;
+            return params;
+        },
+        parseFunctionExpression() {
+            let fn=createFunctionLiteral(this.curToken);
+            if(!this.expectPeek(TokenType.Lparen))
+                return undefined;
+            fn.params=this.parseParams();
+            if(!this.expectPeek(TokenType.Lbrace))
+                return undefined;
+            fn.body=this.parseBlockStatement();
+            return fn;
+        },
+        parseCallArgs() {
+            let args:Expression[]=[];
+            if(peekTokenIs(this,TokenType.Rparen)){
+                this.nextToken();
+                return args;
+            }
+            this.nextToken();
+            args.push(this.parseExpression(ex.LOWEST));
+            while(peekTokenIs(this,TokenType.Comma)){
+                this.nextToken();
+                this.nextToken();
+                args.push(this.parseExpression(ex.LOWEST));
+            };
+            if(!this.expectPeek(TokenType.Rparen))
+                return undefined;
+            return args;
+        },
+        parseCallExpression(fn) {
+            let ce:callExpression=createCallExpression(this.curToken,fn);
+            ce.arguments=this.parseCallArgs();
+            return ce;
+        },
     }
     p.nextToken();
     p.nextToken();
@@ -181,6 +278,9 @@ export function createParser(lexer : lexer):Parser{
     p.registerPrefix(TokenType.True,p.parseBoolean.bind(p));
     p.registerPrefix(TokenType.Bang,p.parsePrefixExpression.bind(p));
     p.registerPrefix(TokenType.Minus,p.parsePrefixExpression.bind(p));
+    p.registerPrefix(TokenType.Lparen,p.parseGroupedExpressions.bind(p));
+    p.registerPrefix(TokenType.If,p.parseIfEpression.bind(p));
+    p.registerPrefix(TokenType.Function,p.parseFunctionExpression.bind(p));
     p.registerinfix(TokenType.Eq,p.parseInfixExpression.bind(p));
     p.registerinfix(TokenType.Not_eq,p.parseInfixExpression.bind(p));
     p.registerinfix(TokenType.Plus,p.parseInfixExpression.bind(p));
@@ -189,9 +289,10 @@ export function createParser(lexer : lexer):Parser{
     p.registerinfix(TokenType.Slash,p.parseInfixExpression.bind(p));
     p.registerinfix(TokenType.Gt,p.parseInfixExpression.bind(p));
     p.registerinfix(TokenType.Lt,p.parseInfixExpression.bind(p));
+        p.registerinfix(TokenType.Lparen,p.parseCallExpression.bind(p));
     return p;
 }
-let lex:lexer =new lexer(`3 > 5 == false`);
+let lex:lexer =new lexer('add(1, 2 * 3, 4 + 5);');
 let par=createParser(lex);
 let pr=par.parseProgram();
 pr.statements.forEach(e => console.log(e));

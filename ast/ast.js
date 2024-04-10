@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createBooleanLiteral = exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIntegralLiteral = exports.createIdentifier = exports.createProgram = exports.createPrefixExpression = exports.createInfixExpression = exports.precedences = exports.ex = void 0;
+exports.createCallExpression = exports.createFunctionLiteral = exports.createIfExpression = exports.createBlockStatement = exports.createBooleanLiteral = exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIntegralLiteral = exports.createIdentifier = exports.createProgram = exports.createPrefixExpression = exports.createInfixExpression = exports.precedences = exports.ex = void 0;
 const fs_1 = __importDefault(require("fs"));
 ;
 exports.ex = {
@@ -24,7 +24,12 @@ exports.precedences = {
     "-": 3,
     "/": 4,
     "*": 4,
+    "(": 6,
 };
+;
+;
+;
+;
 function createInfixExpression(token, operator, left) {
     let ie = {
         token: token,
@@ -199,4 +204,82 @@ function createBooleanLiteral(token, value) {
     return bl;
 }
 exports.createBooleanLiteral = createBooleanLiteral;
+;
+function createBlockStatement(token) {
+    let bs = {
+        token: token,
+        statements: [],
+        StatementNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s = "";
+            this.statements.forEach(e => s += e.to_string() + " ");
+            return s;
+        },
+    };
+    return bs;
+}
+exports.createBlockStatement = createBlockStatement;
+;
+function createIfExpression(token) {
+    let ie = {
+        token: token,
+        to_string() {
+            let s = "if" + " " + this.condition.to_string() + " " + this.consequence.to_string();
+            if (this.alternative !== undefined)
+                s += " " + "else " + this.alternative.to_string();
+            return s;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+    };
+    return ie;
+}
+exports.createIfExpression = createIfExpression;
+function createFunctionLiteral(token) {
+    let fl = {
+        token: token,
+        params: [],
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s = "fn (";
+            this.params.forEach(e => s += e.to_string() + " ");
+            s += ")" + this.body.to_string();
+            return s;
+        },
+    };
+    return fl;
+}
+exports.createFunctionLiteral = createFunctionLiteral;
+;
+function createCallExpression(token, fn) {
+    let ce = {
+        token: token,
+        fn: fn,
+        arguments: [],
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s = this.tokenLiteral() + " ";
+            this.arguments.forEach(e => s += e.to_string() + " ");
+            return s += ")";
+        },
+        expressionNode: function () {
+            throw new Error("Function not implemented.");
+        },
+        StatementNode: function () {
+            throw new Error("Function not implemented.");
+        }
+    };
+    return ce;
+}
+exports.createCallExpression = createCallExpression;
 ;

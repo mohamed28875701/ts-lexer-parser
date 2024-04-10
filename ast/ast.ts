@@ -82,8 +82,31 @@ export const precedences : { [key :string ] :number}={
     "-":3,
     "/":4,
     "*":4,
+    "(":6,
 };
 
+export interface blockStatement extends Statement {
+    token:Token;
+    statements:Statement[];
+};
+
+export interface ifExpression extends Expression{
+    token:Token;
+    condition:Expression;
+    consequence:blockStatement;
+    alternative:blockStatement;
+};
+
+export interface functionLiteral extends Expression{
+    token:Token;
+    params: Identifier[];
+    body:blockStatement;
+};
+export interface callExpression extends Expression{
+    token : Token;
+    fn:Expression;
+    arguments : Expression[];
+};
 export function createInfixExpression(token : Token , operator:string,left:Expression){
     let ie:infixExpression={
         token: token,
@@ -142,7 +165,7 @@ export function createProgram() : Program{
     return program;
 }
 
-export function createIdentifier(token : Token,value:string) : IntegralLiteral{
+export function createIdentifier(token : Token,value:string) : Identifier{
     let id : Identifier={
         token : token,
         value:value,
@@ -256,5 +279,79 @@ export function createBooleanLiteral(token:Token,value:boolean){
     return bl;
 };
 
+export function createBlockStatement(token:Token){
+    let bs:blockStatement={
+        token:token,
+        statements:[],
+        StatementNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s = "";
+            this.statements.forEach(e=> s+= e.to_string() + " ");
+            return s;
+        },
+    };
+    return bs;
+};
+
+export function createIfExpression(token:Token){
+    let ie:ifExpression={
+        token:token,
+        to_string() {
+            let s = "if" +" "+ this.condition.to_string() + " " + this.consequence.to_string(); 
+            if(this.alternative!==undefined)
+                s+=" "+ "else " + this.alternative.to_string();
+            return s;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+    };
+    return ie;
+}
+
+export function createFunctionLiteral(token:Token) :functionLiteral{
+    let fl: functionLiteral={
+        token:token,
+        params:[],
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s = "fn (";
+            this.params.forEach(e=> s+= e.to_string()+" ");
+            s+=")"+this.body.to_string();
+            return s;
+        },
+    }
+    return fl;
+};
+
+export function createCallExpression(token:Token,fn:Expression){
+    let ce:callExpression={
+        token: token,
+        fn: fn,
+        arguments: [],
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            let s: string = this.tokenLiteral() + " ";
+            this.arguments.forEach(e => s += e.to_string() + " ");
+            return s+=")";
+        },
+        expressionNode: function (): void {
+            throw new Error("Function not implemented.");
+        },
+        StatementNode: function (): void | undefined {
+            throw new Error("Function not implemented.");
+        }
+    };
+    return ce;
+};
 
 
