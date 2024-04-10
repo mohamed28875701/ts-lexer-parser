@@ -1,7 +1,8 @@
 import fs from 'fs'
 import { lexer } from './lex/lexer';
 import { TokenType } from './lexer/token';
-function readFile(file:string):string{
+import readline from "readline";
+/*function readFile(file:string):string{
     const data = fs.readFileSync(file,"utf8");
     return data;
 }
@@ -14,4 +15,5 @@ for(let i=0 ; i!=l.input.length;i++) {
     fs.appendFileSync("out.txt",`${token.type} ${token.literal}\n`,"utf8")
     if(token.type===TokenType.Eof)
         break;
-}
+}*/
+readline.emitKeypressEvents();

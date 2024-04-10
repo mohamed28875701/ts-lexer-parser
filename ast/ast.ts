@@ -252,7 +252,6 @@ export function createExpressionStatement(token:Token){
         },
         to_string() {
             let s:string="";
-            s=s+this.tokenLiteral()+" ";
             if(this.expression!==undefined)
                 s+=this.expression.to_string();
             s+=";";
@@ -340,7 +339,7 @@ export function createCallExpression(token:Token,fn:Expression){
             return this.token.literal;
         },
         to_string() {
-            let s: string = this.tokenLiteral() + " ";
+            let s: string =  " ";
             this.arguments.forEach(e => s += e.to_string() + " ");
             return s+=")";
         },

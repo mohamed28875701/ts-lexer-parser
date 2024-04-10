@@ -78,17 +78,18 @@ export function createParser(lexer : lexer):Parser{
             if(!this.expectPeek(TokenType.Assign)){
                 return undefined;
             }
-            while(!curTokenIs(this,TokenType.Semicolon)){
+            this.nextToken();
+            stmt.value=this.parseExpression(ex.LOWEST);
+            if(peekTokenIs(this,TokenType.Semicolon))
                 this.nextToken();
-            }
             return stmt;
         },
         parseReturnStatement(){
             let stmt = createReturnStatement(this.curToken);
             this.nextToken();
-            while(!curTokenIs(this,TokenType.Semicolon)){
+            stmt.returnValue=this.parseExpression(ex.LOWEST);
+            if(peekTokenIs(this,TokenType.Semicolon))
                 this.nextToken();
-            }
             return stmt;
         },
         expectPeek(token : string) {
@@ -289,10 +290,10 @@ export function createParser(lexer : lexer):Parser{
     p.registerinfix(TokenType.Slash,p.parseInfixExpression.bind(p));
     p.registerinfix(TokenType.Gt,p.parseInfixExpression.bind(p));
     p.registerinfix(TokenType.Lt,p.parseInfixExpression.bind(p));
-        p.registerinfix(TokenType.Lparen,p.parseCallExpression.bind(p));
+    p.registerinfix(TokenType.Lparen,p.parseCallExpression.bind(p));
     return p;
 }
-let lex:lexer =new lexer('add(1, 2 * 3, 4 + 5);');
+let lex:lexer =new lexer('let x = 5;');
 let par=createParser(lex);
 let pr=par.parseProgram();
 pr.statements.forEach(e => console.log(e));

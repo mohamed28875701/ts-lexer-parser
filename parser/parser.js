@@ -47,17 +47,18 @@ function createParser(lexer) {
             if (!this.expectPeek(token_1.TokenType.Assign)) {
                 return undefined;
             }
-            while (!(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Semicolon)) {
+            this.nextToken();
+            stmt.value = this.parseExpression(ast_1.ex.LOWEST);
+            if ((0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Semicolon))
                 this.nextToken();
-            }
             return stmt;
         },
         parseReturnStatement() {
             let stmt = (0, ast_1.createReturnStatement)(this.curToken);
             this.nextToken();
-            while (!(0, helper_functions_1.curTokenIs)(this, token_1.TokenType.Semicolon)) {
+            stmt.returnValue = this.parseExpression(ast_1.ex.LOWEST);
+            if ((0, helper_functions_1.peekTokenIs)(this, token_1.TokenType.Semicolon))
                 this.nextToken();
-            }
             return stmt;
         },
         expectPeek(token) {
@@ -266,7 +267,7 @@ function createParser(lexer) {
     return p;
 }
 exports.createParser = createParser;
-let lex = new lexer_1.lexer('add(1, 2 * 3, 4 + 5);');
+let lex = new lexer_1.lexer('let x = 5;');
 let par = createParser(lex);
 let pr = par.parseProgram();
 pr.statements.forEach(e => console.log(e));
