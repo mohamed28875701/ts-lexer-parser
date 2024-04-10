@@ -1,5 +1,4 @@
 import fs from "fs";
-import { Token, TokenType, createToken } from "../lexer/token";
 
 export interface Node {
     tokenLiteral : ()=>string|undefined;
@@ -212,7 +211,7 @@ export function createLetStatement(token:Token) : LetStatement{
             let s:string="";
             s= s+" "+this.tokenLiteral()+" "+ this.name.to_string();
             if(this.value!==undefined)
-                s=s+this.value.to_string();
+                s=s+"="+this.value.to_string();
             s+=";";
             return s;
         },
