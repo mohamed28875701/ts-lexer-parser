@@ -8,45 +8,61 @@ export interface Node {
 export interface Statement extends Node{
     StatementNode : ()=>void|undefined;
 }
+
 export interface Expression extends Statement{
     expressionNode : ()=>void;
 }
+
 export interface Program extends Node {
     statements : Statement[];
 }
+
 export interface LetStatement extends Statement{
     token: Token;
     name : Identifier;
     value : Expression;
 }
+
 export interface returnStatement extends Statement{
     token:Token;
     returnValue :Expression;
 }
+
 export interface expressionStatement extends Statement{
     token : Token;
     expression : Expression;
 }
+
 export interface Identifier extends Expression{
     value:string;
 }
+
 export type prefixParseFn=()=>Expression;
 export type infixParseFn=(exp:Expression)=>Expression;
+
 export interface IntegralLiteral extends Expression{
     token : Token;
     value:number;
 }
+
 export interface prefixExpression extends Expression{
     token:Token;
     operator:string;
     right:Expression;
 }
+
 export interface infixExpression extends Expression{
     token:Token;
     left:Expression;
     operator:string;
     right:Expression;
 }
+
+export interface booleanLiteral extends Expression{
+    token : Token;
+    value:boolean;
+};
+
 export const ex={
     LOWEST:0,
     EQUALS:1,
@@ -56,7 +72,7 @@ export const ex={
     PREFIX:5,
     CALL:6
 }as const;
-TokenType.Lt
+
 export const precedences : { [key :string ] :number}={
     "==":1,
     "!=" :1,
@@ -67,6 +83,7 @@ export const precedences : { [key :string ] :number}={
     "/":4,
     "*":4,
 };
+
 export function createInfixExpression(token : Token , operator:string,left:Expression){
     let ie:infixExpression={
         token: token,
@@ -85,6 +102,7 @@ export function createInfixExpression(token : Token , operator:string,left:Expre
     };
     return ie;
 };
+
 export function createPrefixExpression(token : Token,operator:string) : prefixExpression{
     let pe : prefixExpression={
         token : token,
@@ -103,6 +121,7 @@ export function createPrefixExpression(token : Token,operator:string) : prefixEx
     }
     return pe;
 }
+
 export function createProgram() : Program{
     let program : Program ={
         statements : [],
@@ -122,6 +141,7 @@ export function createProgram() : Program{
     }
     return program;
 }
+
 export function createIdentifier(token : Token,value:string) : IntegralLiteral{
     let id : Identifier={
         token : token,
@@ -138,6 +158,7 @@ export function createIdentifier(token : Token,value:string) : IntegralLiteral{
     }
     return id;
 }
+
 export function createIntegralLiteral(token : Token,value:number) : Identifier{
     let id : Identifier={
         token : token,
@@ -154,6 +175,7 @@ export function createIntegralLiteral(token : Token,value:number) : Identifier{
     }
     return id;
 }
+
 export function createLetStatement(token:Token) : LetStatement{
     let ls : LetStatement={
         token: token,
@@ -174,6 +196,7 @@ export function createLetStatement(token:Token) : LetStatement{
     }
     return ls;
 }
+
 export function createReturnStatement(token:Token){
     let rs :returnStatement ={
         token:token,
@@ -216,7 +239,22 @@ export function createExpressionStatement(token:Token){
     return es;
 }
 
-
+export function createBooleanLiteral(token:Token,value:boolean){
+    let bl:booleanLiteral={
+        token:token,
+        value:value,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            return this.tokenLiteral(); 
+        },
+    };
+    return bl;
+};
 
 
 

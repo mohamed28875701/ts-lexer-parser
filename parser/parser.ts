@@ -1,4 +1,4 @@
-import { Expression, Identifier, LetStatement, Program, Statement, createExpressionStatement, createIdentifier, createInfixExpression, createIntegralLiteral, createLetStatement, createPrefixExpression, createProgram, createReturnStatement, ex, expressionStatement, precedences, prefixExpression, returnStatement } from "../ast/ast";
+import { Expression, Identifier, LetStatement, Program, Statement, createBooleanLiteral, createExpressionStatement, createIdentifier, createInfixExpression, createIntegralLiteral, createLetStatement, createPrefixExpression, createProgram, createReturnStatement, ex, expressionStatement, precedences, prefixExpression, returnStatement } from "../ast/ast";
 import { lexer } from "../lex/lexer";
 import { Token, TokenType } from "../lexer/token";
 import { curTokenIs, peekTokenIs } from "./helper_functions";
@@ -28,6 +28,7 @@ export interface Parser{
     noPrefixParseError:(type:string)=>void;
     peekPrecendence:()=>number;
     curPrecendence:()=>number;
+    parseBoolean:()=>Expression;
 }
 export function createParser(lexer : lexer):Parser{
     let p : Parser ={
@@ -117,9 +118,7 @@ export function createParser(lexer : lexer):Parser{
             return stmt;
         },
         parseExpression(precedence) {
-            console.log(this.curToken);
             let prefix=this.prefixParseFns.get(this.curToken.type);
-            console.log(this.curToken);
             if(prefix===undefined){
                 this.noPrefixParseError(this.curToken.type);
                 return undefined;
@@ -143,7 +142,9 @@ export function createParser(lexer : lexer):Parser{
         },
         parsePrefixExpression() {
             let expression:prefixExpression=createPrefixExpression(this.curToken,this.curToken.literal);
+            console.log(this.curToken.type+"bef");
             this.nextToken();
+            console.log(this.curToken.type+"aft");
             expression.right=this.parseExpression(ex.PREFIX);
             return expression;
         },
@@ -164,13 +165,20 @@ export function createParser(lexer : lexer):Parser{
             exp.right=this.parseExpression(prec);
             return exp;
         },
+        parseBoolean(): Expression{
+            return createBooleanLiteral(this.curToken,this.curToken.literal=="true");
+        }
 
     }
     p.nextToken();
     p.nextToken();
+    
     let parseI=p.parseIdent.bind(p);
     p.registerPrefix(TokenType.Ident,parseI);
     p.registerPrefix(TokenType.Int,p.parseInteger.bind(p));
+    p.registerPrefix(TokenType.Int,p.parseInteger.bind(p));
+    p.registerPrefix(TokenType.False,p.parseBoolean.bind(p));
+    p.registerPrefix(TokenType.True,p.parseBoolean.bind(p));
     p.registerPrefix(TokenType.Bang,p.parsePrefixExpression.bind(p));
     p.registerPrefix(TokenType.Minus,p.parsePrefixExpression.bind(p));
     p.registerinfix(TokenType.Eq,p.parseInfixExpression.bind(p));
@@ -183,7 +191,7 @@ export function createParser(lexer : lexer):Parser{
     p.registerinfix(TokenType.Lt,p.parseInfixExpression.bind(p));
     return p;
 }
-let lex:lexer =new lexer(`a + b * c + d / e - f`);
+let lex:lexer =new lexer(`3 > 5 == false`);
 let par=createParser(lex);
 let pr=par.parseProgram();
 pr.statements.forEach(e => console.log(e));

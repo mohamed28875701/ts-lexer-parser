@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIntegralLiteral = exports.createIdentifier = exports.createProgram = exports.createPrefixExpression = exports.createInfixExpression = exports.precedences = exports.ex = void 0;
+exports.createBooleanLiteral = exports.createExpressionStatement = exports.createReturnStatement = exports.createLetStatement = exports.createIntegralLiteral = exports.createIdentifier = exports.createProgram = exports.createPrefixExpression = exports.createInfixExpression = exports.precedences = exports.ex = void 0;
 const fs_1 = __importDefault(require("fs"));
-const token_1 = require("../lexer/token");
+;
 exports.ex = {
     LOWEST: 0,
     EQUALS: 1,
@@ -15,7 +15,6 @@ exports.ex = {
     PREFIX: 5,
     CALL: 6
 };
-token_1.TokenType.Lt;
 exports.precedences = {
     "==": 1,
     "!=": 1,
@@ -183,3 +182,21 @@ function createExpressionStatement(token) {
     return es;
 }
 exports.createExpressionStatement = createExpressionStatement;
+function createBooleanLiteral(token, value) {
+    let bl = {
+        token: token,
+        value: value,
+        expressionNode() {
+            return undefined;
+        },
+        tokenLiteral() {
+            return this.token.literal;
+        },
+        to_string() {
+            return this.tokenLiteral();
+        },
+    };
+    return bl;
+}
+exports.createBooleanLiteral = createBooleanLiteral;
+;
